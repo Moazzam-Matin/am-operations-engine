@@ -16,6 +16,25 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = Flask(__name__)
 
+# ------Helper function for AI-------#
+def parse_ai_sections(text):
+    sections = {}
+    current_section = None
+
+    for line in text.splitlines():
+        line = line.strip()
+
+        if line.startswith("===") and line.endswith("==="):
+            current_section = line.replace("=", "").strip()
+            sections[current_section] = []
+        elif current_section:
+            sections[current_section].append(line)
+
+    # Join lines back into clean text
+    for key in sections:
+        sections[key] = "\n".join(sections[key]).strip()
+
+    return sections
 
 # --- STEP 2 LOGIC: THE CALCULATOR ---
 def calculate_revenue_potential(followers, engagement_rate):
@@ -54,28 +73,83 @@ def calculate_revenue_potential(followers, engagement_rate):
 
 
 # ----The Strategy funtion uses genai ---
-def get_ai_strategy(handle, followers):
+def get_ai_strategy(handle, followers, engagement):
     prompt = f"""
-    You are the Lead Monetization Strategist at A&M Operations.
+    You are a monetisation strategist who builds revenue systems for content creators.
 
-    Analyze Instagram creator {handle} with {followers} followers.
+    Create a structured Monetisation Audit.
+    Write clearly, confidently, and like a consultant.
+    Avoid generic advice.
 
-    Deliver:
-    1. Three pain-to-identity transformations already visible in their content.
-    2. The specific mechanism they demonstrate (not motivation, not mindset).
-    3. One digital product per transformation with:
-       - Product type
-       - Outcome promise
-       - Ideal price tier (low / mid / high)
+    CREATOR DETAILS
+    - Platform: Instagram
+    - Handle: {handle}
+    - Followers: {followers}
+    - Engagement Rate: {engagement}%
 
-    Be concise.
-    No generic advice.
-    No fluff.
+    OUTPUT FORMAT (FOLLOW EXACTLY):
+
+    === CREATOR_OVERVIEW ===
+    Identified Niche:
+    Hidden Transformation:
+
+    === DEMAND_ANALYSIS ===
+    Theme 1:
+    Observed Engagement:
+    Sales Potential:
+
+    Theme 2:
+    Observed Engagement:
+    Sales Potential:
+
+    Theme 3:
+    Observed Engagement:
+    Sales Potential:
+
+    Verdict:
+
+    === NUMBERS ===
+    Follower Base:
+    Assumed Product Price:
+    Engagement Rate:
+    Conversion Rate:
+    Revenue Potential:
+    Explanation:
+
+    === PRODUCT_SUGGESTIONS ===
+    Option 1 (The Big Bet):
+    What it is:
+    Who it is for:
+    Why it works:
+
+    Option 2:
+    What it is:
+    Who it is for:
+    Why it works:
+
+    Option 3:
+    What it is:
+    Who it is for:
+    Why it works:
+
+    === IMPLEMENTATION_PLAN ===
+    Phase 1 (Days 1–3):
+    Phase 2 (Days 4–9):
+    Phase 3 (Days 10–14):
+
+    === VALIDATION_CAROUSEL ===
+    Slide 1 (Hook):
+    Slide 2 (Agitation):
+    Slide 3 (Call to Action):
     """
 
     model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(prompt)
-    return response.text
+    ai_text = response.text
+
+    sections = parse_ai_sections(ai_text)
+
+    return sections
 
 
 # --- MAIN DASHBOARD ---
@@ -83,7 +157,7 @@ def get_ai_strategy(handle, followers):
 def dashboard():
     stats = None
     handle = None
-    ai_text = None  # Initialize this so the page doesn't crash
+    ai_sections = None  # Initialize this so the page doesn't crash
 
     if request.method == 'POST':
         handle = request.form.get('handle')
@@ -93,9 +167,15 @@ def dashboard():
 
 
         # 2. Run the AI Strategy (New Line)
-        ai_text = get_ai_strategy(handle, followers)
+        ai_sections = get_ai_strategy(handle, followers, er)
+        print(ai_sections.keys())
 
-    return render_template('index.html', stats=stats, handle=handle, ai_text=ai_text)
+    return render_template(
+        'index.html',
+        stats=stats,
+        handle=handle,
+        ai_sections=ai_sections
+    )
 
 
 # --- STEP 4: THE PDF EXPORTER ---
