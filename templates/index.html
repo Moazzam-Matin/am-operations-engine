@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A&M Revenue Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: Inter, sans-serif;
+    background: #0e0e0e;
+    color: #eaeaea;
+    padding: 60px;
+}
+
+.card {
+    background: #141414;
+    padding: 30px;
+    border-radius: 14px;
+    max-width: 520px;
+    margin: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+h1 {
+    font-size: 28px;
+    letter-spacing: -0.5px;
+}
+
+input {
+    background: #1f1f1f;
+    color: white;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+button {
+    background: white;
+    color: black;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.ai-box {
+    background: #0b0b0b;
+    border-left: 4px solid #00ffcc;
+    padding: 15px;
+    margin-top: 20px;
+    white-space: pre-wrap;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.logo-container img {
+    width: 140px;
+    max-width: 100%;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.6));
+}
+.input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+/* Inputs tighter + cleaner */
+.input-grid input {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+}
+
+/* Button matches input height */
+.input-grid button {
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    grid-column: 2 / 3; /* bottom-right */
+}
+.input-grid input,
+.input-grid button {
+    height: 44px;
+}
+/* ---------------- MOBILE RESPONSIVENESS ---------------- */
+@media (max-width: 768px) {
+
+    body {
+        padding: 20px;
+    }
+
+    .card {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    /* Logo scales down */
+    .logo-container img {
+        width: 110px;
+    }
+
+    /* Inputs stack vertically */
+    .input-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Button spans full width */
+    .input-grid button {
+        grid-column: 1 / -1;
+    }
+
+    /* Slightly bigger touch targets */
+    .input-grid input,
+    .input-grid button {
+        height: 48px;
+        font-size: 15px;
+    }
+
+    /* AI output spacing */
+    .ai-box {
+        font-size: 14px;
+        padding: 14px;
+    }
+}
+
+
+
+
+</style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="A&M Operations Logo">
+        </div>
+        <div style="
+            height:1px;
+            background:linear-gradient(to right, transparent, #333, transparent);
+            margin-bottom:30px;">
+        </div>
+
+
+        <form method="POST">
+
+            <div class="input-grid">
+                <input type="text" name="handle" placeholder="IG Handle" required>
+                <input type="number" name="followers" placeholder="Followers" required>
+                <input type="number" step="0.1" name="er" placeholder="Engagement %" required>
+
+                <button type="submit">GENERATE STRATEGY</button>
+            </div>
+
+        </form>
+
+
+{% if stats %}
+    <hr>
+
+    <h3>Creator Valuation Summary</h3>
+
+    <!-- STEP 5.1: TOTAL CAPTURABLE REVENUE -->
+    <h2 style="color:#00ffcc; font-size:32px;">
+        {{ stats.total }}
+    </h2>
+    <p style="opacity:0.7;">
+        Estimated capturable annual revenue across low, mid, and high ticket offers.
+    </p>
+
+    <!-- AI STRATEGY OUTPUT -->
+    <div class="ai-box">
+        <strong>Monetization Analysis</strong><br><br>
+        {{ ai_text }}
+    </div>
+
+    <form action="/download" method="POST" style="margin-top: 20px;">
+        <input type="hidden" name="handle" value="{{ handle }}">
+        <input type="hidden" name="revenue" value="{{ stats.total }}">
+        <input type="hidden" name="ai_summary" value="{{ ai_text }}">
+        <button type="submit" style="background:#00ffcc; color:black;">
+            DOWNLOAD AUDIT PDF
+        </button>
+    </form>
+{% endif %}
+    </div>
+</body>
+</html>
