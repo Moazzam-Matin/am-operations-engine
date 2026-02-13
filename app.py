@@ -1,8 +1,11 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, make_response
-import pdfkit
 import google.generativeai as genai
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from flask import send_file
 
 load_dotenv()
 
@@ -96,58 +99,53 @@ def dashboard():
 
 
 # --- STEP 4: THE PDF EXPORTER ---
-@app.route('/download', methods=['POST'])
+@app.route("/download", methods=["POST"])
 def download():
-    handle = request.form.get('handle')
-    revenue = request.form.get('revenue')
-    ai_summary = request.form.get('ai_summary')
+    handle = request.form.get("handle")
+    revenue = request.form.get("revenue")
+    ai_summary = request.form.get("ai_summary", "")
 
-    # Path to your installed wkhtmltopdf engine
-    path_to_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-    config = pdfkit.configuration(wkhtmltopdf=path_to_wkhtmltopdf)
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
 
-    # The Document Template
-    html_content = f"""
-    <html>
-        <body style="font-family: Arial; padding: 50px; border: 5px solid black;">
-            <h1 style="text-align: center;">A&M OPERATIONS</h1>
-            <hr>
+    y = height - 50
 
-            <h2>REVENUE AUDIT FOR: {handle}</h2>
-            <p>Based on our proprietary analysis of your ecosystem's engagement metrics.</p>
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(50, y, "A&M OPERATIONS")
+    y -= 30
 
-            <h1 style="color: green; font-size: 40px;">
-                Potential: {revenue}
-            </h1>
+    c.setFont("Helvetica", 12)
+    c.drawString(50, y, f"Revenue Audit for: {handle}")
+    y -= 30
 
-            <p>This floor represents uncaptured value ready for systemization.</p>
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, f"Potential Revenue: {revenue}")
+    y -= 40
 
-            <hr style="margin:40px 0;">
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Monetization Strategy")
+    y -= 20
 
-            <h3>Monetization Strategy Overview</h3>
-            <div style="
-                background:#f4f4f4;
-                padding:20px;
-                border-left:5px solid #00aa88;
-                white-space: pre-wrap;
-                font-size:14px;
-            ">
-                {ai_summary}
-            </div>
+    c.setFont("Helvetica", 10)
+    for line in ai_summary.split("\n"):
+        c.drawString(50, y, line)
+        y -= 14
+        if y < 50:
+            c.showPage()
+            c.setFont("Helvetica", 10)
+            y = height - 50
 
-            <footer style="margin-top: 80px; font-size:12px;">
-                Confidential Document – 2026
-            </footer>
-        </body>
-    </html>
-    """
+    c.showPage()
+    c.save()
+    buffer.seek(0)
 
-    pdf = pdfkit.from_string(html_content, False, configuration=config)
-
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=Audit_{handle}.pdf'
-    return response
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"Audit_{handle}.pdf",
+        mimetype="application/pdf"
+    )
 
 
 if __name__ == "__main__":
