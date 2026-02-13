@@ -1,14 +1,15 @@
-from google import genai # This is the new, recommended way
-from flask import Flask, render_template, request, make_response
-import pdfkit
 import os
 from dotenv import load_dotenv
+from flask import Flask, render_template, request, make_response
+import pdfkit
+import google.generativeai as genai
 
 load_dotenv()
 
 
+
 # Setup the new client with your API key from the screenshot
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = Flask(__name__)
 
@@ -69,13 +70,9 @@ def get_ai_strategy(handle, followers):
     No fluff.
     """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
-        contents=prompt
-    )
-
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(prompt)
     return response.text
-
 
 
 # --- MAIN DASHBOARD ---
