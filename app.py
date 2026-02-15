@@ -16,7 +16,7 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = Flask(__name__)
-"""
+
 # ------Helper function for AI-------#
 def parse_ai_sections(text):
     sections = {}
@@ -36,7 +36,7 @@ def parse_ai_sections(text):
         sections[key] = "\n".join(sections[key]).strip()
 
     return sections
-    """
+
 
 # --- STEP 2 LOGIC: THE CALCULATOR ---
 def calculate_revenue_potential(followers, engagement_rate):
@@ -152,7 +152,7 @@ def get_ai_strategy(handle, followers, engagement):
     print(ai_text)
     print("===== AI TEXT END =====")
 
-    #sections = parse_ai_sections(ai_text)
+    sections = parse_ai_sections(ai_text)
 
     return sections
 
