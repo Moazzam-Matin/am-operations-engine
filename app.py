@@ -185,7 +185,10 @@ def dashboard():
 def download():
     handle = request.form.get("handle")
     revenue = request.form.get("revenue")
-    ai_summary = request.form.get("ai_summary", "")
+    ai_summary = request.form.get('ai_summary')
+
+    if ai_summary:
+        ai_summary = ai_summary.replace("\n", "<br>")
 
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
