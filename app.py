@@ -148,9 +148,6 @@ def get_ai_strategy(handle, followers, engagement):
     model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(prompt)
     ai_text = response.text
-    print("===== AI TEXT START =====")
-    print(ai_text)
-    print("===== AI TEXT END =====")
 
     sections = parse_ai_sections(ai_text)
 
