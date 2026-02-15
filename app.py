@@ -6,6 +6,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from flask import send_file
+from reportlab.lib.utils import ImageReader
 
 load_dotenv()
 
@@ -167,8 +168,8 @@ def dashboard():
 
 
         # 2. Run the AI Strategy (New Line)
-        ai_sections = get_ai_strategy(handle, followers, er)
-        print(ai_sections.keys())
+        ai_text = get_ai_strategy(handle, followers, er)
+        ai_sections = ai_text
 
     return render_template(
         'index.html',
@@ -189,7 +190,22 @@ def download():
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    y = height - 50
+    y = height - 100
+
+    # ---- ADD LOGO ----
+    logo_path = os.path.join("static", "logo.png")
+
+    logo_width = 80  # adjust if needed
+    logo_height = 40  # adjust if needed
+
+    c.drawImage(
+        logo_path,
+        40,  # X position (left margin)
+        height - 50,  # Y position (top)
+        width=logo_width,
+        height=logo_height,
+        mask='auto'  # THIS keeps transparency
+    )
 
     c.setFont("Helvetica-Bold", 18)
     c.drawString(50, y, "A&M OPERATIONS")
